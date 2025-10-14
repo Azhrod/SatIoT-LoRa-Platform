@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="fr" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SatIoT-LoRa – Protocole de communication</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>tailwind.config = { darkMode: 'class', theme: { extend: {} } };</script>
+</head>
+<body class="bg-[#10131a] text-[#f3f6fa] font-sans antialiased">
+  <header class="container mx-auto flex items-center justify-between py-6 px-4">
+    <h1 class="text-2xl font-semibold whitespace-nowrap cursor-pointer hover:text-[#3b82f6] transition-colors">
+      <a href="/">SatIoT-LoRa</a>
+    </h1>
+    <nav>
+      <ul class="flex space-x-8 text-[#7b8ca6]">
+        <li><a href="/realtime" class="hover:text-white">Temps Réel</a></li>
+        <li><a href="/integration" class="hover:text-white">Intégration LoRa</a></li>
+        <li><a href="/protocol" class="hover:text-white text-white">Protocole</a></li>
+        <li><a href="/satellite" class="hover:text-white">Satellites</a></li>
+        <li>
+          <a href="/documentation" 
+             class="hover:text-white">
+            Documentation
+          </a>
+        </li>
+      </ul>
+    </nav>
+  </header>
+  <main class="container mx-auto max-w-3xl py-8">
+    <h2 class="text-3xl font-bold mb-6 text-center">Protocole de communication IoT & Satellite</h2>
+    <div class="space-y-8">
+      {% for section in protocol_sections %}
+        <section class="bg-[#181c23]/90 p-8 rounded-2xl border border-[#23273a] shadow-lg">
+          <h3 class="text-2xl font-bold mb-4 text-green-400">{{ section.title }}</h3>
+          <div class="text-base leading-relaxed">{{ section.content_html|safe }}</div>
+        </section>
+      {% endfor %}
+    </div>
+  </main>
+  <footer class="container mx-auto text-center py-6 text-[#7b8ca6]">
+    &copy; 2025 SatIoT-LoRa. Tous droits réservés.
+  </footer>
+</body>
+</html> 

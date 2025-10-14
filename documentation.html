@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="fr" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SatIoT-LoRa – Documentation</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = { darkMode: 'class', theme: { extend: {} } };
+  </script>
+  <style>
+    .pdf-container {
+      height: calc(125vh);
+      min-height: 600px;
+    }
+    
+    .pdf-viewer {
+      width: 100%;
+      height: 100%;
+      border: none;
+      border-radius: 0.5rem;
+      transform: scale(0.75);
+      transform-origin: top center;
+      transition: all 0.3s ease;
+    }
+    
+    .download-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 25px rgba(59, 130, 246, 0.3);
+    }
+  </style>
+</head>
+<body class="bg-[#10131a] text-[#f3f6fa] font-sans antialiased min-h-screen">
+
+  <!-- Header -->
+  <header class="container mx-auto flex items-center justify-between py-6 px-4">
+    <h1 class="text-2xl font-semibold whitespace-nowrap cursor-pointer hover:text-[#3b82f6] transition-colors">
+      <a href="/">SatIoT-LoRa</a>
+    </h1>
+    <nav>
+      <ul class="flex space-x-8 text-[#7b8ca6]">
+        <li><a href="/realtime" class="hover:text-white">Temps Réel</a></li>
+        <li><a href="/integration" class="hover:text-white">Intégration LoRa</a></li>
+        <li><a href="/protocol" class="hover:text-white">Protocole</a></li>
+        <li><a href="/satellite" class="hover:text-white">Satellites</a></li>
+        <li>
+          <a href="/documentation" 
+             class="hover:text-white text-white">
+            Documentation
+          </a>
+        </li>
+      </ul>
+    </nav>
+  </header>
+
+  <main class="container mx-auto px-4 py-8">
+    
+    <!-- Hero Section -->
+    <section class="text-center mb-8">
+      <h1 class="text-5xl font-bold mb-6 bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">
+        Rapport Projet IoTSat-LoRa
+      </h1>
+      <p class="text-xl text-[#7b8ca6] max-w-3xl mx-auto mb-8">
+        Documentation complète sur nos recherches satellites, les ondes, LoRa et les méthodes d'envoi de données
+      </p>
+      
+      <!-- Download Button -->
+      <div class="mb-8">
+        <a href="/pdf/Rapport_Projet_IoTSat.pdf" 
+           download="Rapport_Projet_IoTSat.pdf"
+           class="download-btn inline-flex items-center bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-300 shadow-lg">
+          <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+          </svg>
+          Télécharger le PDF
+        </a>
+      </div>
+    </section>
+
+    <!-- PDF Viewer -->
+    <div class="bg-[#181c23]/90 backdrop-blur-md rounded-2xl shadow-[0_8px_32px_0_rgba(31,38,135,0.37)] border border-[#23273a] p-6">
+      <div class="pdf-container">
+        <iframe 
+          src="/pdf/Rapport_Projet_IoTSat.pdf" 
+          class="pdf-viewer"
+          title="Rapport Projet IoTSat-LoRa">
+          <p class="text-center text-[#7b8ca6] py-8">
+            Votre navigateur ne supporte pas l'affichage de PDF. 
+            <a href="/pdf/Rapport_Projet_IoTSat.pdf" class="text-blue-400 hover:text-blue-300 underline">
+              Cliquez ici pour télécharger le PDF
+            </a>
+          </p>
+        </iframe>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="container mx-auto text-center py-8 text-[#7b8ca6] border-t border-[#23273a] mt-16">
+    <p>&copy; 2025 SatIoT-LoRa. Tous droits réservés.</p>
+    <p class="mt-2 text-sm">Documentation technique complète du projet</p>
+  </footer>
+
+</body>
+</html> 

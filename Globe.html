@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Test Globe.gl</title>
+  <script src="https://unpkg.com/three@0.152.2/build/three.min.js"></script>
+  <script src="https://unpkg.com/globe.gl"></script>
+  <style>
+    html, body { height: 100%; margin: 0; }
+    #globeViz { width: 100vw; height: 100vh; }
+  </style>
+</head>
+<body>
+  <div id="globeViz"></div>
+  <script>
+    window.addEventListener('DOMContentLoaded', () => {
+      const globeContainer = document.getElementById('globeViz');
+      const myGlobe = Globe()
+        (globeContainer)
+        .globeImageUrl('https://unpkg.com/three-globe/example/img/earth-dark.jpg')
+        .backgroundColor('#18181b')
+        .autoRotate(true)
+        .autoRotateSpeed(0.5);
+    });
+  </script>
+</body>
+</html>

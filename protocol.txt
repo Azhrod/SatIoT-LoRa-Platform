@@ -1,0 +1,27 @@
+1. Phase d’installation
+    • Objectif : définir des fenêtres de communication par rapport au passage des satellites.
+    • Étapes :
+        1. L’IoT s’allume et contacte un satellite via le canal de configuration.
+        2. Le satellite envoie à l’IoT trois durées d’attente (en minutes/secondes) avant le début de chacun des trois passages prévus pour le lendemain.
+            ▪ Durée A : délai depuis la réception jusqu’au premier passage
+            ▪ Durée B : délai depuis la réception jusqu’au deuxième passage
+            ▪ Durée C : délai depuis la réception jusqu’au troisième passage
+        3. L’IoT stocke ces trois durées et se met en veille jusqu’à l’expiration de la première.
+2. État normal (communication ascendante)
+    • Objectif : transmettre les données quotidiennes et récupérer les nouvelles durées.
+    • Pour chaque durée (A, B, C), dans l’ordre :
+        1. À l’expiration de la durée A, l’IoT émet son paquet de données.
+        2. Si le satellite répond :
+            ▪ Il accuse réception (ACK).
+            ▪ Il renvoie trois nouvelles durées pour les passages du jour suivant.
+            ▪ L’IoT cesse toute tentative supplémentaire aujourd’hui (B et C ignorés).
+        3. Si pas de réponse (timeout), l’IoT attend l’expiration de la durée B puis répète la tentative, puis idem avec C si B échoue.
+3. Perte de connexion (3 échecs)
+    • Condition : échec des trois tentatives aux durées A, B et C.
+    • Comportement (à partir de minuit le lendemain) :
+        ◦ L’IoT envoie son propre beacon toutes les 1 min 30 s ± jitter (±15 s).
+        ◦ Dès que le satellite capte un beacon :
+            ▪ Il répond par un ACK.
+            ▪ L’IoT renvoie ses données en attente.
+            ▪ Le satellite renvoie alors trois nouvelles durées pour le surlendemain.
+        ◦ Tant qu’aucun ACK n’est reçu, l’IoT continue d’émettre ces beacons selon l’intervalle défini.

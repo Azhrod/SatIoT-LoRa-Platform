@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="fr" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SatIoT-LoRa – Temps Réel</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = { darkMode: 'class', theme: { extend: {} } };
+  </script>
+  <style>
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateX(-20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+    
+    @keyframes slideOut {
+      from {
+        opacity: 1;
+        transform: translateX(0);
+      }
+      to {
+        opacity: 0;
+        transform: translateX(-20px);
+      }
+    }
+  </style>
+  <script src="https://unpkg.com/three@0.152.2/build/three.min.js"></script>
+  <script src="https://unpkg.com/globe.gl"></script>
+</head>
+<body class="bg-[#10131a] text-[#f3f6fa] font-sans antialiased">
+
+  <!-- Header -->
+  <header class="container mx-auto flex items-center justify-between py-6 px-4">
+    <h1 class="text-2xl font-semibold whitespace-nowrap cursor-pointer hover:text-[#3b82f6] transition-colors">
+      <a href="/">SatIoT-LoRa</a>
+    </h1>
+    <nav>
+      <ul class="flex space-x-8 text-[#7b8ca6]">
+        <li><a href="/realtime" class="hover:text-white text-white">Temps Réel</a></li>
+        <li><a href="/integration" class="hover:text-white">Intégration LoRa</a></li>
+        <li><a href="/protocol" class="hover:text-white">Protocole</a></li>
+        <li><a href="/satellite" class="hover:text-white">Satellites</a></li>
+        <li><a href="/documentation" class="hover:text-white">Documentation</a></li>
+      </ul>
+    </nav>
+  </header>  
+
+  <main class="w-full h-[calc(100vh-88px)]">
+    <div class="grid grid-cols-1 lg:grid-cols-2 h-full">
+      <!-- Left Panel: Controls -->
+      <div class="p-8 space-y-8 overflow-y-auto bg-[#181c23]/50">
+        <!-- Coordinate Input Section -->
+        <section id="input-section">
+          <div class="bg-[#181c23]/90 backdrop-blur-md rounded-2xl shadow-[0_8px_32px_0_rgba(31,38,135,0.37)] border border-[#23273a] p-8">
+            <h2 class="text-2xl font-bold mb-4">Position IoT</h2>
+            
+            <!-- Ville Search -->
+            <div class="mb-6">
+              <label for="city-search" class="block text-sm font-medium text-[#7b8ca6] mb-1">Rechercher une ville</label>
+              <div class="relative">
+                <input type="text" id="city-search" placeholder="Entrez le nom d'une ville..." 
+                       class="w-full bg-[#10131a] border border-[#23273a] rounded-lg p-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none">
+                <div id="city-suggestions" class="hidden absolute z-10 w-full bg-[#181c23] border border-[#23273a] rounded-lg mt-1 max-h-48 overflow-y-auto">
+                  <!-- Suggestions will be populated here -->
+                </div>
+              </div>
+            </div>
+            
+            <form id="coords-form" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 items-end">
+              <div>
+                <label for="latitude" class="block text-sm font-medium text-[#7b8ca6] mb-1">Latitude</label>
+                <input type="number" id="latitude" name="latitude" value="48.85" step="any" class="w-full bg-[#10131a] border border-[#23273a] rounded-lg p-2 focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none">
+              </div>
+              <div>
+                <label for="longitude" class="block text-sm font-medium text-[#7b8ca6] mb-1">Longitude</label>
+                <input type="number" id="longitude" name="longitude" value="2.35" step="any" class="w-full bg-[#10131a] border border-[#23273a] rounded-lg p-2 focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none">
+              </div>
+              <div>
+                <label for="altitude" class="block text-sm font-medium text-[#7b8ca6] mb-1">Altitude (m)</label>
+                <input type="number" id="altitude" name="altitude" value="35" step="any" class="w-full bg-[#10131a] border border-[#23273a] rounded-lg p-2 focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none">
+              </div>
+              <div class="col-span-full grid grid-cols-1 md:grid-cols-3 gap-4">
+                <button type="submit" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg h-fit w-full">Mettre à jour</button>
+                <button type="button" id="center-sat-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg h-fit w-full">Centrer Satellite</button>
+                <button type="button" id="center-iot-btn" class="bg-cyan-600 hover:bg-cyan-700 text-white font-bold py-2 px-4 rounded-lg h-fit w-full">Centrer IoT</button>
+              </div>
+            </form>
+          </div>
+        </section>
+
+        <!-- Countdown -->
+        <div id="countdown-container" class="text-center">
+            <p class="text-lg">Prochain passage dans :</p>
+            <p id="countdown" class="font-bold text-4xl text-green-400 font-mono tracking-wider">Calcul...</p>
+        </div>
+        
+        <!-- Next Passes Section -->
+        <section id="next-passes" class="w-full">
+          <h2 class="text-3xl font-bold mb-6 text-center">Prochains Passages</h2>
+          <div id="passes-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1 gap-8">
+            <!-- Satellite pass info boxes will be generated here -->
+          </div>
+        </section>
+      </div>
+      
+      <!-- Right Panel: Globe -->
+      <div id="globe-container" class="h-full w-full relative">
+        <div id="globeViz" class="w-full h-full"></div>
+        <div id="info-panel" class="hidden absolute top-4 left-4 bg-[#181c23]/80 backdrop-blur-md p-4 rounded-lg border border-[#23273a] shadow-lg text-white max-w-xs z-10">
+          <button id="close-info-panel" class="absolute top-1 right-2 text-gray-400 hover:text-white text-2xl font-bold">&times;</button>
+          <h3 id="info-title" class="text-lg font-bold mb-2"></h3>
+          <div id="info-details" class="text-sm space-y-1"></div>
+        </div>
+      </div>
+    </div>
+  </main>
+  
+  <!-- Footer can be removed if the page is full-screen, or kept outside the main container -->
+  <footer class="hidden container mx-auto text-center py-6 text-[#7b8ca6]">
+    &copy; 2025 SatIoT-LoRa. Tous droits réservés.
+  </footer>
+
+  <!-- Script Globe.gl -->
+  <script>
+    let countdownIntervalId = null;
+    const globeContainer = document.getElementById('globeViz');
+    const myGlobe = Globe()(globeContainer);
+    let nextPassingSatellite = null;
+    let iotPosition = null;
+
+    // Fonction pour afficher la vignette d'informations
+    function showInfoPanel(data) {
+      console.log('showInfoPanel appelée avec:', data);
+      
+      const infoPanel = document.getElementById('info-panel');
+      const infoTitle = document.getElementById('info-title');
+      const infoDetails = document.getElementById('info-details');
+      
+      console.log('Éléments trouvés:', infoPanel, infoTitle, infoDetails);
+      
+      if (data.type === 'earth') {
+        // Informations pour la Terre
+        console.log('Affichage des informations terrestres');
+        infoTitle.textContent = data.name;
+        infoDetails.innerHTML = `
+          <p><strong>Type:</strong> Planète Terre</p>
+          <p><strong>Latitude:</strong> ${data.lat.toFixed(4)}°</p>
+          <p><strong>Longitude:</strong> ${data.lng.toFixed(4)}°</p>
+          <p><strong>Altitude:</strong> 0 km (niveau de la mer)</p>
+          <p><strong>Rayon:</strong> 6 371 km</p>
+          <p><strong>Gravité:</strong> 9.81 m/s²</p>
+        `;
+      } else {
+        // Calculer la distance si on a la position IoT
+        let distanceText = 'N/A';
+        if (iotPosition && data.type !== 'iot') {
+          const distance = calculateDistance(
+            iotPosition.lat, iotPosition.lng, iotPosition.alt,
+            data.lat, data.lng, data.alt || 10
+          );
+          distanceText = `${distance.toFixed(0)} km`;
+        }
+        
+        infoTitle.textContent = data.name;
+        infoDetails.innerHTML = `
+          <p><strong>Type:</strong> ${data.type === 'iot' ? 'Votre IoT' : 'Satellite'}</p>
+          <p><strong>Latitude:</strong> ${data.lat.toFixed(4)}°</p>
+          <p><strong>Longitude:</strong> ${data.lng.toFixed(4)}°</p>
+          <p><strong>Altitude:</strong> ${(data.alt || 10).toFixed(0)} km</p>
+          ${data.type !== 'iot' ? `<p><strong>Distance:</strong> ${distanceText}</p>` : ''}
+        `;
+      }
+      
+      console.log('Affichage de la vignette');
+      infoPanel.classList.remove('hidden');
+      infoPanel.style.animation = 'slideIn 0.3s ease-out';
+    }
+    
+    // Fonction pour calculer la distance entre deux points
+    function calculateDistance(lat1, lon1, alt1, lat2, lon2, alt2) {
+      const R = 6371; // Rayon de la Terre en km
+      const dLat = (lat2 - lat1) * Math.PI / 180;
+      const dLon = (lon2 - lon1) * Math.PI / 180;
+      const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+               Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+               Math.sin(dLon/2) * Math.sin(dLon/2);
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+      const horizontalDistance = R * c;
+      
+      // Distance 3D incluant l'altitude
+      const altitudeDiff = Math.abs(alt2 - alt1);
+      return Math.sqrt(horizontalDistance * horizontalDistance + altitudeDiff * altitudeDiff);
+    }
+
+    async function updateData(lat, lon, alt) {
+      iotPosition = { lat: parseFloat(lat), lng: parseFloat(lon), alt: parseFloat(alt) };
+
+      if (countdownIntervalId) {
+        clearInterval(countdownIntervalId);
+      }
+
+      const countdownElement = document.getElementById('countdown');
+      const passesContainer = document.getElementById('passes-container');
+      countdownElement.textContent = 'Calcul...';
+      passesContainer.innerHTML = '<p class="text-center col-span-full">Chargement des prochains passages...</p>';
+      nextPassingSatellite = null;
+
+      const response = await fetch(`/api/passes?lat=${lat}&lon=${lon}&alt=${alt}`);
+      const data = await response.json();
+
+      if (data.deltaTime && Array.isArray(data.deltaTime) && data.deltaTime.length > 0) {
+        const futurePasses = data.deltaTime.filter(t => t > 0);
+        const earliestTime = Math.min(...futurePasses);
+
+        if (countdownElement && isFinite(earliestTime)) {
+            let remainingTime = Math.round(earliestTime);
+
+            const formatTime = (seconds) => {
+                if (seconds < 0) return "00h 00m 00s";
+                const h = Math.floor(seconds / 3600).toString().padStart(2, '0');
+                const m = Math.floor((seconds % 3600) / 60).toString().padStart(2, '0');
+                const s = (seconds % 60).toString().padStart(2, '0');
+                return `${h}h ${m}m ${s}s`;
+            };
+
+            countdownElement.textContent = formatTime(remainingTime);
+
+            countdownIntervalId = setInterval(() => {
+                remainingTime--;
+                countdownElement.textContent = formatTime(remainingTime);
+
+                if (remainingTime < 0) {
+                    clearInterval(countdownIntervalId);
+                    countdownElement.textContent = "Passage en cours!";
+                }
+            }, 1000);
+        } else if (countdownElement) {
+            countdownElement.textContent = "Passage en cours ou imminent!";
+        }
+      }
+      
+      if (data.best3 && Array.isArray(data.best3) && passesContainer) {
+        const sortedPasses = data.best3.map((pass, index) => ({
+          ...pass,
+          deltaTime: data.deltaTime[index]
+        })).sort((a, b) => a.deltaTime - b.deltaTime);
+
+        const earliestTime = sortedPasses.length > 0 ? sortedPasses[0].deltaTime : undefined;
+        const nextSatName = sortedPasses.length > 0 ? sortedPasses[0].sat : null;
+
+        passesContainer.innerHTML = '';
+
+        const satellitesData = data.df_positions.map(sat => {
+          const isNext = sat.nom === nextSatName;
+          if (isNext) {
+            nextPassingSatellite = { lat: sat.lat, lng: sat.lng, alt: sat.height, name: sat.nom };
+          }
+          return {
+            lat: sat.lat,
+            lng: sat.lng,
+            alt: sat.height,
+            name: sat.nom || 'Satellite',
+            color: isNext ? '#22c55e' : 'red', // green-500 pour le prochain, rouge pour les autres
+            type: 'satellite'
+          };
+        });
+        
+        if (iotPosition) {
+          satellitesData.push({
+            ...iotPosition,
+            name: 'Votre IoT',
+            color: '#3498db', // Blue
+            type: 'iot'
+          });
+        }
+
+        sortedPasses.forEach((pass) => {
+          const isEarliest = pass.deltaTime === earliestTime;
+          const card = document.createElement('div');
+          const borderColor = isEarliest ? 'border-green-500/80' : 'border-orange-500/60';
+          const bgColor = isEarliest ? 'bg-[#1a2923]/60' : 'bg-[#181c23]/90';
+          
+          card.className = `p-6 rounded-2xl shadow-lg border-2 ${borderColor} ${bgColor} flex flex-col backdrop-blur-md`;
+
+          const satName = pass.sat || 'N/A';
+          const maxElevation = pass['elevation°'] ? `${pass['elevation°'].toFixed(2)}°` : 'N/A';
+          const distance = pass.distance_km ? `${pass.distance_km.toFixed(0)} km` : 'N/A';
+
+          const formatPassTime = (time) => {
+              if (!time) return 'N/A';
+              return new Date(time).toLocaleString('fr-FR', {
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+              });
+          };
+
+          card.innerHTML = `
+            <div class="flex justify-between items-center">
+              <div class="flex-1">
+                <h3 class="text-2xl font-bold mb-3 text-white">${satName}</h3>
+                <div class="space-y-2 text-lg">
+                    <p><strong class="font-semibold text-[#7b8ca6] w-32 inline-block">Heure passage:</strong> ${formatPassTime(pass.time_utc)}</p>
+                    <p><strong class="font-semibold text-[#7b8ca6] w-32 inline-block">Distance:</strong> ${distance}</p>
+                </div>
+              </div>
+              <div class="text-center ml-4">
+                <p class="text-xl font-bold ${isEarliest ? 'text-green-400' : 'text-orange-400'}">${maxElevation}</p>
+                <p class="text-xs text-[#7b8ca6]">Élévation Max</p>
+              </div>
+            </div>
+          `;
+          
+          // Rendre la carte cliquable
+          card.style.cursor = 'pointer';
+          card.addEventListener('click', (event) => {
+            // Empêcher la propagation de l'événement
+            event.stopPropagation();
+            
+            // Trouver le satellite correspondant dans les données
+            const satelliteData = satellitesData.find(sat => sat.name === satName);
+            if (satelliteData) {
+              // Animation de zoom vers le satellite
+              myGlobe.pointOfView({
+                lat: satelliteData.lat,
+                lng: satelliteData.lng,
+                altitude: (satelliteData.alt || 10) / 6371 + 0.8
+              }, 1500);
+              
+              // Afficher la vignette d'informations
+              showInfoPanel(satelliteData);
+              
+              // Animation de la carte cliquée
+              card.style.transform = 'scale(0.95)';
+              setTimeout(() => {
+                card.style.transform = 'scale(1)';
+              }, 150);
+            }
+          });
+          
+          // Effet hover sur la carte
+          card.addEventListener('mouseenter', () => {
+            card.style.transform = 'scale(1.02)';
+            card.style.borderColor = isEarliest ? 'rgba(34, 197, 94, 0.9)' : 'rgba(249, 115, 22, 0.9)';
+          });
+          
+          card.addEventListener('mouseleave', () => {
+            card.style.transform = 'scale(1)';
+            card.style.borderColor = isEarliest ? 'rgba(34, 197, 94, 0.8)' : 'rgba(249, 115, 22, 0.6)';
+          });
+          
+          passesContainer.appendChild(card);
+        });
+
+        myGlobe.htmlElementsData(satellitesData);
+      } else {
+        myGlobe.htmlElementsData([]);
+      }
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      globeContainer.style.height = '100%';
+      globeContainer.style.width = '100%';
+
+      // Ville search functionality
+      const citySearch = document.getElementById('city-search');
+      const citySuggestions = document.getElementById('city-suggestions');
+      const latitudeInput = document.getElementById('latitude');
+      const longitudeInput = document.getElementById('longitude');
+      const altitudeInput = document.getElementById('altitude');
+      
+      let searchTimeout;
+      
+      citySearch.addEventListener('input', (e) => {
+        const query = e.target.value.trim();
+        
+        clearTimeout(searchTimeout);
+        
+        if (query.length < 2) {
+          citySuggestions.classList.add('hidden');
+          return;
+        }
+        
+        searchTimeout = setTimeout(async () => {
+          try {
+            const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5&addressdetails=1`);
+            const data = await response.json();
+            
+            if (data.length > 0) {
+              citySuggestions.innerHTML = '';
+              data.forEach(city => {
+                const div = document.createElement('div');
+                div.className = 'p-3 hover:bg-[#23273a] cursor-pointer border-b border-[#23273a] last:border-b-0';
+                div.innerHTML = `
+                  <div class="font-medium text-white">${city.display_name.split(',')[0]}</div>
+                  <div class="text-sm text-[#7b8ca6]">${city.display_name}</div>
+                `;
+                
+                div.addEventListener('click', () => {
+                  citySearch.value = city.display_name.split(',')[0];
+                  latitudeInput.value = parseFloat(city.lat).toFixed(6);
+                  longitudeInput.value = parseFloat(city.lon).toFixed(6);
+                  altitudeInput.value = '35'; // Default altitude
+                  citySuggestions.classList.add('hidden');
+                  
+                  // Auto-update the data
+                  updateData(latitudeInput.value, longitudeInput.value, altitudeInput.value);
+                });
+                
+                citySuggestions.appendChild(div);
+              });
+              citySuggestions.classList.remove('hidden');
+            } else {
+              citySuggestions.classList.add('hidden');
+            }
+          } catch (error) {
+            console.error('Erreur lors de la recherche de ville:', error);
+            citySuggestions.classList.add('hidden');
+          }
+        }, 300);
+      });
+      
+      // Hide suggestions when clicking outside
+      document.addEventListener('click', (e) => {
+        if (!citySearch.contains(e.target) && !citySuggestions.contains(e.target)) {
+          citySuggestions.classList.add('hidden');
+        }
+      });
+
+      myGlobe
+        .globeImageUrl('https://unpkg.com/three-globe/example/img/earth-blue-marble.jpg')
+        .bumpImageUrl('https://unpkg.com/three-globe/example/img/earth-topology.png')
+        .backgroundImageUrl('https://unpkg.com/three-globe/example/img/night-sky.png')
+        .showAtmosphere(true)
+        .width(globeContainer.offsetWidth)
+        .height(globeContainer.offsetHeight)
+        .htmlElementsData([])
+        .htmlLat(d => d.lat)
+        .htmlLng(d => d.lng)
+        .htmlAltitude(d => (d.alt || 10) / 6371)
+        .htmlElement(d => {
+            const el = document.createElement('div');
+            el.style.backgroundColor = d.color;
+            el.style.borderRadius = '0%';
+            el.style.pointerEvents = 'auto';
+            el.style.cursor = 'pointer';
+            //el.style.transition = 'all 0.3s ease';
+            el.style.boxShadow = '0 0 10px rgba(255,255,255,0.3)';
+            el.style.position = 'relative';
+
+            if (d.type === 'iot') {
+              el.style.width = '16px';
+              el.style.height = '16px';
+              // Style IoT - point plus grand
+              el.style.borderRadius = '50%';
+            } else {
+              // Style Satellite - forme rectangulaire avec panneaux
+              el.style.width = '12px';
+              el.style.height = '6px';
+              el.style.borderRadius = '2px';
+              
+              // Ajouter des panneaux solaires
+              el.innerHTML = `
+                <div style="position: absolute; left: -8px; top: 1px; width: 6px; height: 4px; background-color: ${d.color === '#22c55e' ? '#16a34a' : '#dc2626'}; border-radius: 1px; opacity: 0.8;"></div>
+                <div style="position: absolute; right: -8px; top: 1px; width: 6px; height: 4px; background-color: ${d.color === '#22c55e' ? '#16a34a' : '#dc2626'}; border-radius: 1px; opacity: 0.8;"></div>
+              `;
+            }
+
+            el.title = d.name;
+            
+            // Ajouter événement de clic
+            el.addEventListener('click', (e) => {
+              e.stopPropagation();
+                
+              // Animation de zoom vers le point (zoom moins prononcé)
+              myGlobe.pointOfView({
+                lat: d.lat,
+                lng: d.lng,
+                altitude: (d.alt || 10) / 6371 + 0.8
+              }, 1500);
+                
+              // Afficher la vignette d'informations près du clic
+              showInfoPanel(d);
+                
+              // Animation du point cliqué
+              el.style.transform = 'scale(1.5)';
+              el.style.boxShadow = '0 0 20px rgba(255,255,255,0.8)';
+              setTimeout(() => {
+                el.style.transform = 'scale(1)';
+                el.style.boxShadow = '0 0 10px rgba(255,255,255,0.3)';
+              }, 300);
+            });
+            
+            // Effet hover
+            el.addEventListener('mouseenter', () => {
+              el.style.transform = 'scale(1.2)';
+              el.style.boxShadow = '0 0 15px rgba(255,255,255,0.6)';
+            });
+            
+            el.addEventListener('mouseleave', () => {
+              el.style.transform = 'scale(1)';
+              el.style.boxShadow = '0 0 10px rgba(255,255,255,0.3)';
+            });
+            
+            return el;
+        });
+        
+        // Gestionnaire pour fermer la vignette
+        document.getElementById('close-info-panel').addEventListener('click', () => {
+          const infoPanel = document.getElementById('info-panel');
+          infoPanel.style.animation = 'slideOut 0.3s ease-in';
+          setTimeout(() => {
+            infoPanel.classList.add('hidden');
+          }, 300);
+          
+          // Dézoom pour revenir à la vue initiale
+          myGlobe.pointOfView({
+            lat: 0,
+            lng: 0,
+            altitude: 2.5
+          }, 1500);
+        });
+        
+        // Fermer la vignette en cliquant ailleurs
+        document.addEventListener('click', (e) => {
+          // Ne pas fermer si on clique sur une carte de passage
+          if (e.target.closest('#passes-container')) {
+            return;
+          }
+          
+          // Ne pas fermer si on clique sur les boutons de centrage
+          if (e.target.closest('#center-sat-btn') || e.target.closest('#center-iot-btn')) {
+            return;
+          }
+          
+          if (!e.target.closest('#info-panel') && !e.target.closest('#globeViz')) {
+            const infoPanel = document.getElementById('info-panel');
+            if (!infoPanel.classList.contains('hidden')) {
+              infoPanel.style.animation = 'slideOut 0.3s ease-in';
+              setTimeout(() => {
+                infoPanel.classList.add('hidden');
+              }, 300);
+            }
+          }
+        });
+
+      const coordsForm = document.getElementById('coords-form');
+      coordsForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const lat = document.getElementById('latitude').value;
+        const lon = document.getElementById('longitude').value;
+        const alt = document.getElementById('altitude').value;
+        updateData(lat, lon, alt);
+      });
+
+      const centerSatBtn = document.getElementById('center-sat-btn');
+      centerSatBtn.addEventListener('click', () => {
+        if (nextPassingSatellite) {
+          myGlobe.pointOfView({
+            lat: nextPassingSatellite.lat,
+            lng: nextPassingSatellite.lng,
+            altitude: (nextPassingSatellite.alt / 6371) + 0.8
+          }, 1500);
+          
+          // Afficher la vignette d'informations avec les données formatées
+          const satData = {
+            ...nextPassingSatellite,
+            name: nextPassingSatellite.name || 'Satellite de prochain passage',
+            type: 'satellite',
+            color: '#22c55e'
+          };
+          showInfoPanel(satData);
+        } else {
+          alert("Aucun prochain passage de satellite n'est actuellement suivi.");
+        }
+      });
+
+      const centerIotBtn = document.getElementById('center-iot-btn');
+      centerIotBtn.addEventListener('click', () => {
+        if (iotPosition) {
+          // Créer un objet avec les mêmes propriétés que le point IoT sur le globe
+          const iotPointData = {
+            lat: iotPosition.lat,
+            lng: iotPosition.lng,
+            alt: iotPosition.alt,
+            name: 'Votre IoT',
+            color: '#3498db',
+            type: 'iot'
+          };
+          
+          // Animation de zoom vers le point (même logique que le clic sur le point)
+          myGlobe.pointOfView({
+            lat: iotPointData.lat,
+            lng: iotPointData.lng,
+            altitude: (iotPointData.alt || 10) / 6371 + 0.8
+          }, 1500);
+          
+          // Afficher la vignette d'informations (même logique que le clic sur le point)
+          showInfoPanel(iotPointData);
+        } else {
+          alert("Les coordonnées de l'IoT ne sont pas définies.");
+        }
+      });
+
+      const initialLat = document.getElementById('latitude').value;
+      const initialLon = document.getElementById('longitude').value;
+      const initialAlt = document.getElementById('altitude').value;
+      updateData(initialLat, initialLon, initialAlt);
+
+      window.addEventListener('resize', () => {
+        myGlobe.width(globeContainer.offsetWidth);
+        myGlobe.height(globeContainer.offsetHeight);
+      });
+
+      // Gestionnaire de clic pour les éléments HTML (satellites et IoT)
+      globeContainer.addEventListener('click', (event) => {
+        // Vérifier si on a cliqué sur un élément HTML (satellite ou IoT)
+        const target = event.target;
+        if (target && target.style && target.style.backgroundColor) {
+          console.log('Clic sur un élément HTML détecté');
+          return; // Laisser le gestionnaire HTML gérer
+        }
+        
+        // Clic sur le globe - ne rien faire
+        console.log('Clic sur le globe détecté - aucune action');
+      });
+    });
+  </script>
+</body>
+</html>

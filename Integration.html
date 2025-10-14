@@ -1,0 +1,1052 @@
+<!DOCTYPE html>
+<html lang="fr" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SatIoT-LoRa – Intégration LoRa</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>tailwind.config = { darkMode: 'class', theme: { extend: {} } };</script>
+  <style>
+    .signal-wave {
+      animation: wave 2s infinite;
+    }
+    
+    @keyframes wave {
+      0% { transform: scale(1); opacity: 1; }
+      100% { transform: scale(3); opacity: 0; }
+    }
+    
+    .satellite-orbit {
+      animation: orbit 20s linear infinite;
+    }
+    
+    @keyframes orbit {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+    
+    .data-packet {
+      animation: transmit 3s ease-in-out infinite;
+    }
+    
+    @keyframes transmit {
+      0% { transform: translateY(0) scale(0.8); opacity: 0; }
+      50% { transform: translateY(-50px) scale(1.2); opacity: 1; }
+      100% { transform: translateY(-100px) scale(0.8); opacity: 0; }
+    }
+    
+    .status-indicator {
+      animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
+    .iot-device {
+      transition: all 0.3s ease;
+    }
+
+    .iot-device:hover {
+      transform: scale(1.05);
+    }
+
+    .lrfhss-packet {
+      animation: lrfhss-transmit 4s ease-in-out infinite;
+    }
+
+    @keyframes lrfhss-transmit {
+      0% { transform: translateY(0) scale(0.8); opacity: 0; }
+      25% { transform: translateY(-25px) scale(1.1); opacity: 0.7; }
+      50% { transform: translateY(-50px) scale(1.3); opacity: 1; }
+      75% { transform: translateY(-75px) scale(1.1); opacity: 0.7; }
+      100% { transform: translateY(-100px) scale(0.8); opacity: 0; }
+    }
+
+    .sf-packet {
+      animation: sf-transmit 2.5s ease-in-out infinite;
+    }
+
+    @keyframes sf-transmit {
+      0% { transform: translateY(0) scale(0.8); opacity: 0; }
+      50% { transform: translateY(-50px) scale(1.2); opacity: 1; }
+      100% { transform: translateY(-100px) scale(0.8); opacity: 0; }
+    }
+  </style>
+</head>
+<body class="bg-[#10131a] text-[#f3f6fa] font-sans antialiased">
+  <!-- Header -->
+  <header class="container mx-auto flex items-center justify-between py-6 px-4">
+    <h1 class="text-2xl font-semibold whitespace-nowrap cursor-pointer hover:text-[#3b82f6] transition-colors">
+      <a href="/">SatIoT-LoRa</a>
+    </h1>
+    <nav>
+      <ul class="flex space-x-8 text-[#7b8ca6]">
+        <li><a href="/realtime" class="hover:text-white">Temps Réel</a></li>
+        <li><a href="/integration" class="hover:text-white text-white">Intégration LoRa</a></li>
+        <li><a href="/protocol" class="hover:text-white">Protocole</a></li>
+        <li><a href="/satellite" class="hover:text-white">Satellites</a></li>
+        <li><a href="/documentation" class="hover:text-white">Documentation</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <!-- Main Content -->
+  <main class="w-full min-h-screen py-8 px-4 flex flex-col">
+    <h1 class="text-4xl font-bold mb-8 text-center bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">
+      Simulation Multi-IoT LoRa
+    </h1>
+    
+    <!-- Simulation Running Banner -->
+    <div id="simulationBanner" class="fixed top-0 left-0 w-full z-40 bg-green-600 text-white text-center py-2 text-lg font-semibold shadow-lg hidden transition-all duration-300">
+      <span class="animate-pulse">Simulation en cours...</span>
+    </div>
+    
+    <!-- Animation Overlay -->
+    <div id="simulationOverlay" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60 backdrop-blur-md hidden">
+      <div class="flex flex-col items-center">
+        <div class="animate-spin rounded-full h-24 w-24 border-t-4 border-b-4 border-green-400 mb-8"></div>
+        <h2 class="text-3xl font-bold text-green-400 mb-2">Simulation en cours...</h2>
+        <p class="text-lg text-white">Transmission des données IoT vers le satellite</p>
+      </div>
+    </div>
+    
+    <!-- Configuration Panel -->
+    <div class="bg-[#181c23]/90 rounded-2xl p-6 border border-[#23273a] shadow-lg mb-8">
+      <h2 class="text-2xl font-bold mb-6 text-purple-400 flex items-center">
+        <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+        </svg>
+        Configuration de la Simulation
+      </h2>
+      
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <!-- IoT Configuration -->
+        <div class="space-y-4">
+          <h3 class="text-lg font-semibold text-[#7b8ca6]">Configuration IoT</h3>
+          <div class="space-y-3">
+            <div>
+              <label class="block text-sm text-[#7b8ca6] mb-1">Nombre d'IoT:</label>
+              <input type="range" id="iotCount" min="1" max="20" value="5" class="w-full">
+              <div class="flex justify-between text-xs text-[#7b8ca6]">
+                <span>1</span>
+                <span id="iotCountValue">5</span>
+                <span>20</span>
+              </div>
+            </div>
+            
+            <div>
+              <label class="block text-sm text-[#7b8ca6] mb-1">Mode de Transmission:</label>
+              <select id="transmissionMode" class="w-full bg-[#23273a] text-white px-3 py-2 rounded border border-[#374151]">
+                <option value="sf">LoRa SF (Spreading Factor)</option>
+                <option value="lrfhss">LoRa LRFHSS (Long Range FHSS)</option>
+                <option value="mixed">Mixte (SF + LRFHSS)</option>
+              </select>
+            </div>
+            
+            <div>
+              <label class="block text-sm text-[#7b8ca6] mb-1">Fréquence d'envoi:</label>
+              <select id="frequency" class="w-full bg-[#23273a] text-white px-3 py-2 rounded border border-[#374151]">
+                <option value="30">30s</option>
+                <option value="60" selected>1min</option>
+                <option value="300">5min</option>
+                <option value="900">15min</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Network Configuration -->
+        <div class="space-y-4">
+          <h3 class="text-lg font-semibold text-[#7b8ca6]">Configuration Réseau</h3>
+          <div class="space-y-3">
+            <div>
+              <label class="block text-sm text-[#7b8ca6] mb-1">Puissance d'émission:</label>
+              <select id="powerLevel" class="w-full bg-[#23273a] text-white px-3 py-2 rounded border border-[#374151]">
+                <option value="2">2 dBm</option>
+                <option value="5">5 dBm</option>
+                <option value="8">8 dBm</option>
+                <option value="11">11 dBm</option>
+                <option value="14" selected>14 dBm</option>
+                <option value="17">17 dBm</option>
+                <option value="20">20 dBm</option>
+              </select>
+            </div>
+            
+            <div>
+              <label class="block text-sm text-[#7b8ca6] mb-1">Bande de fréquence:</label>
+              <select id="frequencyBand" class="w-full bg-[#23273a] text-white px-3 py-2 rounded border border-[#374151]">
+                <option value="868" selected>868 MHz (Europe)</option>
+                <option value="915">915 MHz (Amérique)</option>
+                <option value="923">923 MHz (Asie)</option>
+              </select>
+            </div>
+            
+            <div>
+              <label class="block text-sm text-[#7b8ca6] mb-1">Angle d'élévation:</label>
+              <div class="flex items-center space-x-2">
+                <input type="range" id="elevationAngle" min="0" max="90" value="45" class="flex-1">
+                <span id="elevationAngleValue" class="text-sm text-white">45°</span>
+              </div>
+              <div class="text-xs text-[#7b8ca6] mt-1">
+                <span id="elevationQuality" class="text-green-400">Excellente</span> - 
+                <span id="elevationDistance" class="text-blue-400">~650 km</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Simulation Controls -->
+        <div class="space-y-4">
+          <h3 class="text-lg font-semibold text-[#7b8ca6]">Contrôles</h3>
+          <div class="space-y-3">
+            <button id="startSimulation" class="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-semibold py-3 px-4 rounded-lg transition-all duration-300 transform hover:scale-105">
+              Démarrer Simulation
+            </button>
+            
+            <button id="stopSimulation" class="w-full bg-gradient-to-r from-red-600 to-pink-600 hover:from-red-700 hover:to-pink-700 text-white font-semibold py-3 px-4 rounded-lg transition-all duration-300 transform hover:scale-105" disabled>
+              Arrêter Simulation
+            </button>
+            
+            <button id="resetSimulation" class="w-full bg-[#23273a] hover:bg-[#2d3748] text-white font-semibold py-3 px-4 rounded-lg transition-all duration-300">
+              Réinitialiser
+            </button>
+
+            <div class="mt-4">
+              <label for="simSpeed" class="block text-sm text-[#7b8ca6] mb-1">Vitesse de simulation :</label>
+              <select id="simSpeed" class="w-full bg-[#23273a] text-white px-3 py-2 rounded border border-[#374151]">
+                <option value="1">x1 (normal)</option>
+                <option value="2">x2</option>
+                <option value="5" selected>x5</option>
+                <option value="10">x10</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Simulation Container -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
+      
+      <!-- IoT Devices Panel -->
+      <div class="bg-[#181c23]/90 rounded-2xl p-6 border border-[#23273a] shadow-lg">
+        <h2 class="text-2xl font-bold mb-6 text-green-400 flex items-center">
+          <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"></path>
+          </svg>
+          Capteurs IoT LoRa
+        </h2>
+        
+        <!-- IoT Devices List -->
+        <div id="iotDevicesList" class="space-y-3 max-h-64 overflow-y-auto">
+          <!-- IoT devices will be dynamically generated here -->
+        </div>
+        
+        <!-- Summary Stats -->
+        <div class="mt-6 pt-4 border-t border-[#23273a]">
+          <div class="grid grid-cols-2 gap-4 text-sm">
+            <div>
+              <span class="text-[#7b8ca6]">Total IoT:</span>
+              <span id="totalIoT" class="text-white font-mono">5</span>
+            </div>
+            <div>
+              <span class="text-[#7b8ca6]">Actifs:</span>
+              <span id="activeIoT" class="text-green-400 font-mono">5</span>
+            </div>
+            <div>
+              <span class="text-[#7b8ca6]">Mode SF:</span>
+              <span id="sfCount" class="text-blue-400 font-mono">3</span>
+            </div>
+            <div>
+              <span class="text-[#7b8ca6]">Mode LRFHSS:</span>
+              <span id="lrfhssCount" class="text-purple-400 font-mono">2</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Communication Visualization -->
+      <div id="visualizationPanel" class="bg-[#181c23]/90 rounded-2xl p-6 border border-[#23273a] shadow-lg relative overflow-hidden transition-all duration-300">
+        <h2 class="text-2xl font-bold mb-6 text-blue-400 flex items-center">
+          <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.111 16.404a5.5 5.5 0 017.778 0M12 20h.01m-7.08-7.071c3.904-3.905 10.236-3.905 14.141 0M1.394 9.393c5.857-5.857 15.355-5.857 21.213 0"></path>
+          </svg>
+          Communication Multi-IoT
+        </h2>
+        
+        <!-- Visual Communication Area -->
+        <div class="relative h-64 bg-gradient-to-b from-[#0f1419] to-[#1a1f2e] rounded-lg border border-[#374151] overflow-hidden">
+          <!-- IoT Devices Grid -->
+          <div id="iotGrid" class="absolute inset-0">
+            <!-- IoT devices will be positioned here -->
+          </div>
+          
+          <!-- Satellite -->
+          <div class="absolute top-4 left-1/2 transform -translate-x-1/2">
+            <div class="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center satellite-orbit">
+              <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3l7 7-7 7-7-7 7-7z"></path>
+              </svg>
+            </div>
+          </div>
+          
+          <!-- Data Packets -->
+          <div id="dataPackets" class="absolute inset-0 pointer-events-none"></div>
+          
+          <!-- Signal Strength Indicator -->
+          <div class="absolute top-4 right-4">
+            <div class="text-xs text-[#7b8ca6] mb-1">Signal RSSI</div>
+            <div class="flex space-x-1">
+              <div id="signalBar1" class="w-2 h-8 bg-green-500 rounded-sm"></div>
+              <div id="signalBar2" class="w-2 h-8 bg-green-500 rounded-sm"></div>
+              <div id="signalBar3" class="w-2 h-8 bg-green-500 rounded-sm"></div>
+              <div id="signalBar4" class="w-2 h-8 bg-green-500 rounded-sm"></div>
+              <div id="signalBar5" class="w-2 h-8 bg-gray-600 rounded-sm"></div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Communication Stats -->
+        <div class="mt-4 grid grid-cols-2 gap-4 text-sm">
+          <div>
+            <span class="text-[#7b8ca6]">Paquets SF:</span>
+            <span id="sfPackets" class="text-blue-400 font-mono">0</span>
+          </div>
+          <div>
+            <span class="text-[#7b8ca6]">Paquets LRFHSS:</span>
+            <span id="lrfhssPackets" class="text-purple-400 font-mono">0</span>
+          </div>
+          <div>
+            <span class="text-[#7b8ca6]">Taux de succès:</span>
+            <span id="successRate" class="text-green-400 font-mono">100%</span>
+          </div>
+          <div>
+            <span class="text-[#7b8ca6]">Latence moy:</span>
+            <span id="avgLatency" class="text-white font-mono">~2.5s</span>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Satellite Panel -->
+      <div class="bg-[#181c23]/90 rounded-2xl p-6 border border-[#23273a] shadow-lg">
+        <h2 class="text-2xl font-bold mb-6 text-blue-400 flex items-center">
+          <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3l7 7-7 7-7-7 7-7z"></path>
+          </svg>
+          Satellite Kineis
+        </h2>
+        
+        <!-- Satellite Status -->
+        <div class="mb-6">
+          <div class="flex items-center justify-between mb-4">
+            <span class="text-[#7b8ca6]">Statut:</span>
+            <div class="flex items-center">
+              <div id="satStatus" class="w-3 h-3 bg-blue-500 rounded-full status-indicator mr-2"></div>
+              <span id="satStatusText" class="text-blue-400 font-semibold">En orbite</span>
+            </div>
+          </div>
+          
+          <div class="grid grid-cols-2 gap-4 text-sm">
+            <div>
+              <span class="text-[#7b8ca6]">Altitude:</span>
+              <span id="altitude" class="text-white font-mono">600 km</span>
+            </div>
+            <div>
+              <span class="text-[#7b8ca6]">Vitesse:</span>
+              <span id="velocity" class="text-white font-mono">7.5 km/s</span>
+            </div>
+            <div>
+              <span class="text-[#7b8ca6]">Position:</span>
+              <span id="position" class="text-white font-mono">48.8°N, 2.3°E</span>
+            </div>
+            <div>
+              <span class="text-[#7b8ca6]">Élévation:</span>
+              <span id="elevation" class="text-white font-mono">45°</span>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Received Data -->
+        <div class="space-y-4">
+          <h3 class="text-lg font-semibold text-[#7b8ca6]">Données Reçues</h3>
+          <div id="receivedData" class="bg-[#0f1419] rounded-lg p-4 h-32 overflow-y-auto text-xs font-mono">
+            <div class="text-[#7b8ca6]">En attente de données...</div>
+          </div>
+          
+          <div class="flex space-x-2">
+            <button id="clearData" class="flex-1 bg-[#23273a] hover:bg-[#2d3748] text-white font-semibold py-2 px-3 rounded transition-all duration-300">
+              Effacer
+            </button>
+            <button id="exportData" class="flex-1 bg-[#23273a] hover:bg-[#2d3748] text-white font-semibold py-2 px-3 rounded transition-all duration-300">
+              Exporter
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Section Graphique des résultats -->
+    <div class="mb-8 bg-[#181c23]/90 rounded-2xl p-6 border border-[#23273a] shadow-lg">
+      <h3 class="text-xl font-bold text-white mb-4">Statistiques de la simulation</h3>
+      <canvas id="resultsChart" height="80"></canvas>
+    </div>
+
+    <!-- Protocol Information -->
+    <div class="bg-[#181c23]/90 rounded-2xl p-8 border border-[#23273a] shadow-lg">
+      <h2 class="text-3xl font-bold mb-6 text-center text-purple-400">Modes de Transmission LoRa</h2>
+      
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div>
+          <h3 class="text-xl font-bold mb-4 text-blue-400">LoRa SF (Spreading Factor)</h3>
+          <ul class="space-y-2 text-[#7b8ca6]">
+            <li class="flex items-center">
+              <svg class="w-4 h-4 text-blue-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+              </svg>
+              Débit: 0.3-37.5 kbps
+            </li>
+            <li class="flex items-center">
+              <svg class="w-4 h-4 text-blue-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+              </svg>
+              Portée: 15-20 km (terrestre)
+            </li>
+            <li class="flex items-center">
+              <svg class="w-4 h-4 text-blue-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+              </svg>
+              Latence: ~2-3 secondes
+            </li>
+            <li class="flex items-center">
+              <svg class="w-4 h-4 text-blue-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+              </svg>
+              Idéal pour: Données critiques, temps réel
+            </li>
+          </ul>
+        </div>
+        
+        <div>
+          <h3 class="text-xl font-bold mb-4 text-purple-400">LoRa LRFHSS (Long Range FHSS)</h3>
+          <ul class="space-y-2 text-[#7b8ca6]">
+            <li class="flex items-center">
+              <svg class="w-4 h-4 text-purple-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+              </svg>
+              Débit: 0.6-1.2 kbps
+            </li>
+            <li class="flex items-center">
+              <svg class="w-4 h-4 text-purple-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+              </svg>
+              Portée: 30-50 km (terrestre)
+            </li>
+            <li class="flex items-center">
+              <svg class="w-4 h-4 text-purple-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+              </svg>
+              Latence: ~4-6 secondes
+            </li>
+            <li class="flex items-center">
+              <svg class="w-4 h-4 text-purple-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+              </svg>
+              Idéal pour: Données volumineuses, longue distance
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Elevation Angle Information -->
+    <div class="bg-[#181c23]/90 rounded-2xl p-8 border border-[#23273a] shadow-lg mt-8">
+      <h2 class="text-3xl font-bold mb-6 text-center text-green-400">Impact de l'Angle d'Élévation</h2>
+      
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div>
+          <h3 class="text-xl font-bold mb-4 text-green-400">Qualité de Communication</h3>
+          <div class="space-y-3">
+            <div class="flex items-center justify-between p-3 bg-[#0f1419] rounded-lg">
+              <span class="text-[#7b8ca6]">80° - 90°</span>
+              <span class="text-green-400 font-semibold">Excellente</span>
+              <span class="text-blue-400 text-sm">~600 km</span>
+            </div>
+            <div class="flex items-center justify-between p-3 bg-[#0f1419] rounded-lg">
+              <span class="text-[#7b8ca6]">60° - 79°</span>
+              <span class="text-green-400 font-semibold">Très bonne</span>
+              <span class="text-blue-400 text-sm">~650 km</span>
+            </div>
+            <div class="flex items-center justify-between p-3 bg-[#0f1419] rounded-lg">
+              <span class="text-[#7b8ca6]">40° - 59°</span>
+              <span class="text-yellow-400 font-semibold">Bonne</span>
+              <span class="text-blue-400 text-sm">~700 km</span>
+            </div>
+            <div class="flex items-center justify-between p-3 bg-[#0f1419] rounded-lg">
+              <span class="text-[#7b8ca6]">20° - 39°</span>
+              <span class="text-orange-400 font-semibold">Moyenne</span>
+              <span class="text-blue-400 text-sm">~750 km</span>
+            </div>
+            <div class="flex items-center justify-between p-3 bg-[#0f1419] rounded-lg">
+              <span class="text-[#7b8ca6]">10° - 19°</span>
+              <span class="text-red-400 font-semibold">Faible</span>
+              <span class="text-blue-400 text-sm">~800 km</span>
+            </div>
+            <div class="flex items-center justify-between p-3 bg-[#0f1419] rounded-lg">
+              <span class="text-[#7b8ca6]">0° - 9°</span>
+              <span class="text-red-600 font-semibold">Très faible</span>
+              <span class="text-blue-400 text-sm">~850 km</span>
+            </div>
+          </div>
+        </div>
+        
+        <div>
+          <h3 class="text-xl font-bold mb-4 text-green-400">Facteurs d'Influence</h3>
+          <ul class="space-y-3 text-[#7b8ca6]">
+            <li class="flex items-start">
+              <svg class="w-5 h-5 text-green-400 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+              </svg>
+              <div>
+                <span class="font-semibold text-white">Atmosphère :</span> Plus l'angle est élevé, moins le signal traverse d'atmosphère
+              </div>
+            </li>
+            <li class="flex items-start">
+              <svg class="w-5 h-5 text-green-400 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+              </svg>
+              <div>
+                <span class="font-semibold text-white">Distance :</span> Angle élevé = distance plus courte = signal plus fort
+              </div>
+            </li>
+            <li class="flex items-start">
+              <svg class="w-5 h-5 text-green-400 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+              </svg>
+              <div>
+                <span class="font-semibold text-white">Interférences :</span> Moins d'obstacles et d'interférences terrestres
+              </div>
+            </li>
+            <li class="flex items-start">
+              <svg class="w-5 h-5 text-green-400 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+              </svg>
+              <div>
+                <span class="font-semibold text-white">Temps de passage :</span> Angles élevés = fenêtres de communication plus courtes
+              </div>
+            </li>
+          </ul>
+          
+          <div class="mt-6 p-4 bg-[#0f1419] rounded-lg">
+            <h4 class="text-lg font-semibold text-yellow-400 mb-2">Recommandations</h4>
+            <p class="text-sm text-[#7b8ca6]">
+              Pour une communication optimale, privilégiez les angles d'élévation > 80°. 
+              En dessous de 70°, la qualité de communication se dégrade significativement.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="container mx-auto text-center py-12 text-[#7b8ca6] border-t border-[#23273a] mt-16">
+    <div class="mb-6">
+      <h3 class="text-2xl font-bold mb-4">SatIoT-LoRa</h3>
+      <p class="text-lg">Communication IoT par satellite</p>
+    </div>
+    <p>&copy; 2025 SatIoT-LoRa. Tous droits réservés.</p>
+  </footer>
+
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <script>
+    // Simulation variables
+    let simulationRunning = false;
+    let iotIntervals = [];
+    let iotDevices = [];
+    let packetsSent = { sf: 0, lrfhss: 0 };
+    let packetsReceived = { sf: 0, lrfhss: 0 };
+
+    // DOM elements
+    const iotCountSlider = document.getElementById('iotCount');
+    const iotCountValue = document.getElementById('iotCountValue');
+    const transmissionMode = document.getElementById('transmissionMode');
+    const frequency = document.getElementById('frequency');
+    const powerLevel = document.getElementById('powerLevel');
+    const frequencyBand = document.getElementById('frequencyBand');
+    const elevationAngle = document.getElementById('elevationAngle');
+    const elevationAngleValue = document.getElementById('elevationAngleValue');
+    const elevationQuality = document.getElementById('elevationQuality');
+    const elevationDistance = document.getElementById('elevationDistance');
+    const startSimulationBtn = document.getElementById('startSimulation');
+    const stopSimulationBtn = document.getElementById('stopSimulation');
+    const resetSimulationBtn = document.getElementById('resetSimulation');
+    const iotDevicesList = document.getElementById('iotDevicesList');
+    const iotGrid = document.getElementById('iotGrid');
+    const dataPackets = document.getElementById('dataPackets');
+    const receivedData = document.getElementById('receivedData');
+
+    // IoT Device Class
+    class IoTDevice {
+      constructor(id, x, y, mode) {
+        this.id = id;
+        this.x = x;
+        this.y = y;
+        this.mode = mode; // 'sf' or 'lrfhss'
+        this.temperature = (20 + Math.random() * 10).toFixed(1);
+        this.humidity = Math.floor(30 + Math.random() * 40);
+        this.pressure = Math.floor(1000 + Math.random() * 30);
+        this.battery = 87;
+        this.status = 'active';
+        this.lastTransmission = null;
+        this.transmissionCount = 0;
+        this.successCount = 0;
+        this.failCount = 0;
+      }
+
+      updateSensorData() {
+        this.temperature = (20 + Math.random() * 10).toFixed(1);
+        this.humidity = Math.floor(30 + Math.random() * 40);
+        this.pressure = Math.floor(1000 + Math.random() * 30);
+        this.battery = Math.max(0, this.battery - 0.1);
+      }
+
+      createDataPacket() {
+        packetsSent[this.mode]++;
+        
+        const packet = document.createElement('div');
+        packet.className = `data-packet absolute w-3 h-3 rounded-full ${this.mode === 'sf' ? 'bg-blue-400 sf-packet' : 'bg-purple-400 lrfhss-packet'}`;
+        packet.style.left = `${this.x}px`;
+        packet.style.bottom = `${this.y}px`;
+        packet.dataset.deviceId = this.id;
+        dataPackets.appendChild(packet);
+        
+        // Simulate transmission time based on mode
+        const transmissionTime = this.mode === 'sf' ? 2500 : 4000;
+        
+        setTimeout(() => {
+          // Success rate based on elevation angle and mode
+          const elevation = parseInt(elevationAngle.value);
+          const successRate = calculateSuccessRate(this.mode, elevation);
+          const timestamp = new Date().toLocaleTimeString();
+          if (Math.random() < successRate) {
+            packetsReceived[this.mode]++;
+            this.successCount = (this.successCount || 0) + 1;
+            const dataEntry = document.createElement('div');
+            dataEntry.className = `text-${this.mode === 'sf' ? 'blue' : 'purple'}-400 mb-1`;
+            dataEntry.textContent = `[${timestamp}] IoT-${this.id} (${this.mode.toUpperCase()}): T=${this.temperature}°C, H=${this.humidity}%, P=${this.pressure}hPa, B=${this.battery.toFixed(1)}% - Élévation: ${elevation}° - Réussi`;
+            receivedData.appendChild(dataEntry);
+          } else {
+            this.failCount = (this.failCount || 0) + 1;
+            const dataEntry = document.createElement('div');
+            dataEntry.className = 'text-red-400 mb-1';
+            dataEntry.textContent = `[${timestamp}] IoT-${this.id} (${this.mode.toUpperCase()}): T=${this.temperature}°C, H=${this.humidity}%, P=${this.pressure}hPa, B=${this.battery.toFixed(1)}% - Élévation: ${elevation}° - Échec de transmission`;
+            receivedData.appendChild(dataEntry);
+          }
+          this.transmissionCount++;
+          this.lastTransmission = new Date();
+          if (dataPackets.contains(packet)) {
+            dataPackets.removeChild(packet);
+          }
+          updateStats();
+        }, transmissionTime);
+      }
+    }
+
+    // Initialize IoT devices
+    function initializeIoTDevices() {
+      const count = parseInt(iotCountSlider.value);
+      const mode = transmissionMode.value;
+      
+      iotDevices = [];
+      iotDevicesList.innerHTML = '';
+      iotGrid.innerHTML = '';
+      
+      for (let i = 1; i <= count; i++) {
+        const deviceMode = mode === 'mixed' ? (i % 2 === 0 ? 'lrfhss' : 'sf') : mode;
+        const x = 20 + (i % 5) * 40;
+        const y = 20 + Math.floor((i - 1) / 5) * 40;
+        
+        const device = new IoTDevice(i, x, y, deviceMode);
+        iotDevices.push(device);
+        
+        // Create IoT device element in list
+        const deviceElement = document.createElement('div');
+        deviceElement.className = 'iot-device bg-[#0f1419] rounded-lg p-3 border border-[#374151]';
+        deviceElement.innerHTML = `
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-sm font-semibold text-${deviceMode === 'sf' ? 'blue' : 'purple'}-400">IoT-${i}</span>
+            <div class="flex items-center">
+              <div class="w-2 h-2 bg-${deviceMode === 'sf' ? 'blue' : 'purple'}-500 rounded-full mr-1"></div>
+              <span class="text-xs text-[#7b8ca6]">${deviceMode.toUpperCase()}</span>
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-2 text-xs">
+            <div>
+              <span class="text-[#7b8ca6]">T:</span>
+              <span class="text-white">${device.temperature}°C</span>
+            </div>
+            <div>
+              <span class="text-[#7b8ca6]">H:</span>
+              <span class="text-white">${device.humidity}%</span>
+            </div>
+            <div>
+              <span class="text-[#7b8ca6]">B:</span>
+              <span class="text-white">${device.battery.toFixed(1)}%</span>
+            </div>
+            <div>
+              <span class="text-[#7b8ca6]">TX:</span>
+              <span class="text-white">${device.transmissionCount}</span>
+            </div>
+          </div>
+        `;
+        iotDevicesList.appendChild(deviceElement);
+        
+        // Create IoT device in visualization grid
+        const gridElement = document.createElement('div');
+        gridElement.className = `absolute w-6 h-6 bg-${deviceMode === 'sf' ? 'blue' : 'purple'}-500 rounded-full flex items-center justify-center cursor-pointer`;
+        gridElement.style.left = `${x}px`;
+        gridElement.style.bottom = `${y}px`;
+        gridElement.innerHTML = `
+          <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"></path>
+          </svg>
+        `;
+        iotGrid.appendChild(gridElement);
+      }
+      
+      updateStats();
+    }
+
+    // Update statistics
+    function updateStats() {
+      const totalIoT = iotDevices.length;
+      const activeIoT = iotDevices.filter(d => d.status === 'active').length;
+      const sfCount = iotDevices.filter(d => d.mode === 'sf').length;
+      const lrfhssCount = iotDevices.filter(d => d.mode === 'lrfhss').length;
+      
+      document.getElementById('totalIoT').textContent = totalIoT;
+      document.getElementById('activeIoT').textContent = activeIoT;
+      document.getElementById('sfCount').textContent = sfCount;
+      document.getElementById('lrfhssCount').textContent = lrfhssCount;
+      document.getElementById('sfPackets').textContent = packetsSent.sf;
+      document.getElementById('lrfhssPackets').textContent = packetsSent.lrfhss;
+      
+      let totalSent = 0;
+      let totalSuccess = 0;
+      iotDevices.forEach(d => {
+        totalSent += d.transmissionCount;
+        totalSuccess += d.successCount;
+      });
+      const successRate = totalSent > 0 ? ((totalSuccess / totalSent) * 100).toFixed(1) : '100';
+      document.getElementById('successRate').textContent = successRate + '%';
+    }
+
+    // Event listeners
+    iotCountSlider.addEventListener('input', () => {
+      iotCountValue.textContent = iotCountSlider.value;
+      if (!simulationRunning) {
+        initializeIoTDevices();
+      }
+    });
+
+    transmissionMode.addEventListener('change', () => {
+      if (!simulationRunning) {
+        initializeIoTDevices();
+      }
+    });
+
+    elevationAngle.addEventListener('input', () => {
+      elevationAngleValue.textContent = elevationAngle.value + '°';
+      updateSignalStrength();
+    });
+
+    startSimulationBtn.addEventListener('click', () => {
+      if (!simulationRunning) {
+        simulationRunning = true;
+        startSimulationBtn.disabled = true;
+        startSimulationBtn.textContent = 'Simulation en cours...';
+        stopSimulationBtn.disabled = false;
+
+        // Afficher le bandeau
+        document.getElementById('simulationBanner').classList.remove('hidden');
+        // Effet pulsation sur le panneau central
+        document.getElementById('visualizationPanel').classList.add('ring-4', 'ring-green-400', 'animate-pulse');
+
+        // Afficher l'animation overlay
+        const overlay = document.getElementById('simulationOverlay');
+        overlay.classList.remove('hidden');
+
+        // Masquer l'animation après 2s puis démarrer la simulation
+        setTimeout(() => {
+          overlay.classList.add('hidden');
+
+          // Lancer un timer individuel pour chaque IoT
+          const speedFactor = parseFloat(document.getElementById('simSpeed').value) || 1;
+          const baseInterval = parseInt(frequency.value) * 1000 / speedFactor;
+          iotIntervals = iotDevices.map(device => {
+            function scheduleNext() {
+              if (!simulationRunning) return;
+              // Intervalle aléatoire entre 0.5x et 1.5x la fréquence
+              const randomInterval = baseInterval * (0.5 + Math.random());
+              return setTimeout(() => {
+                device.updateSensorData();
+                device.createDataPacket();
+                scheduleNext();
+              }, randomInterval);
+            }
+            return scheduleNext();
+          });
+        }, 2000);
+      }
+    });
+
+    stopSimulationBtn.addEventListener('click', () => {
+      if (simulationRunning) {
+        simulationRunning = false;
+        startSimulationBtn.disabled = false;
+        startSimulationBtn.textContent = 'Démarrer Simulation';
+        stopSimulationBtn.disabled = true;
+
+        // Cacher le bandeau
+        document.getElementById('simulationBanner').classList.add('hidden');
+        // Retirer l'effet pulsation
+        document.getElementById('visualizationPanel').classList.remove('ring-4', 'ring-green-400', 'animate-pulse');
+
+        // Arrêter tous les timers individuels
+        iotIntervals.forEach(id => clearTimeout(id));
+        iotIntervals = [];
+      }
+    });
+
+    resetSimulationBtn.addEventListener('click', () => {
+      // Arrêter tous les timers individuels
+      iotIntervals.forEach(id => clearTimeout(id));
+      iotIntervals = [];
+      simulationRunning = false;
+      startSimulationBtn.disabled = false;
+      startSimulationBtn.textContent = 'Démarrer Simulation';
+      stopSimulationBtn.disabled = true;
+
+      // Cacher le bandeau
+      document.getElementById('simulationBanner').classList.add('hidden');
+      // Retirer l'effet pulsation
+      document.getElementById('visualizationPanel').classList.remove('ring-4', 'ring-green-400', 'animate-pulse');
+
+      packetsSent = { sf: 0, lrfhss: 0 };
+      packetsReceived = { sf: 0, lrfhss: 0 };
+
+      dataPackets.innerHTML = '';
+      receivedData.innerHTML = '<div class="text-[#7b8ca6]">En attente de données...</div>';
+
+      initializeIoTDevices();
+    });
+
+    // Update satellite position randomly
+    function updateSatellitePosition() {
+      const lat = (45 + Math.random() * 10 - 5).toFixed(1);
+      const lon = (2 + Math.random() * 10 - 5).toFixed(1);
+      const elevation = Math.floor(30 + Math.random() * 60);
+      
+      document.getElementById('position').textContent = `${lat}°N, ${lon}°E`;
+      document.getElementById('elevation').textContent = elevation + '°';
+    }
+
+    // Update signal strength based on elevation angle
+    function updateSignalStrength() {
+      const elevation = parseInt(elevationAngle.value);
+      
+      // Calculate signal quality based on elevation angle
+      let quality, distance, signalBars;
+      
+      if (elevation >= 80) {
+        quality = "Excellente";
+        distance = "~600 km";
+        signalBars = 5;
+      } else if (elevation >= 60) {
+        quality = "Très bonne";
+        distance = "~650 km";
+        signalBars = 4;
+      } else if (elevation >= 40) {
+        quality = "Bonne";
+        distance = "~700 km";
+        signalBars = 3;
+      } else if (elevation >= 20) {
+        quality = "Moyenne";
+        distance = "~750 km";
+        signalBars = 2;
+      } else if (elevation >= 10) {
+        quality = "Faible";
+        distance = "~800 km";
+        signalBars = 1;
+      } else {
+        quality = "Très faible";
+        distance = "~850 km";
+        signalBars = 0;
+      }
+      
+      // Update display
+      elevationQuality.textContent = quality;
+      elevationDistance.textContent = distance;
+      
+      // Update signal bars
+      const bars = [1, 2, 3, 4, 5];
+      bars.forEach(bar => {
+        const barEl = document.getElementById(`signalBar${bar}`);
+        if (bar <= signalBars) {
+          barEl.classList.remove('bg-gray-600');
+          barEl.classList.add('bg-green-500');
+        } else {
+          barEl.classList.remove('bg-green-500');
+          barEl.classList.add('bg-gray-600');
+        }
+      });
+    }
+
+    // Calculate success rate based on elevation angle and transmission mode
+    function calculateSuccessRate(mode, elevation) {
+      const baseSuccessRate = mode === 'sf' ? 0.95 : 0.92;
+      // Elevation factor: higher elevation = better success rate
+      let elevationFactor;
+      if (elevation >= 80) {
+        elevationFactor = 1.0;
+      } else if (elevation >= 60) {
+        elevationFactor = 0.95;
+      } else if (elevation >= 40) {
+        elevationFactor = 0.90;
+      } else if (elevation >= 20) {
+        elevationFactor = 0.80;
+      } else if (elevation >= 10) {
+        elevationFactor = 0.65;
+      } else {
+        elevationFactor = 0.40;
+      }
+      // Facteur de brouillage/collision : plus il y a d'IoT, plus le taux baisse
+      const nIoT = iotDevices.length;
+      // Exemple : perte de 2% de succès par IoT au-delà de 3 (min 40%)
+      let collisionFactor = Math.max(0.4, 1 - Math.max(0, nIoT - 3) * 0.02);
+      return baseSuccessRate * elevationFactor * collisionFactor;
+    }
+
+    // Export data
+    document.getElementById('exportData').addEventListener('click', () => {
+      const data = receivedData.innerText;
+      const blob = new Blob([data], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'multi_iot_lora_data_' + new Date().toISOString().slice(0, 10) + '.txt';
+      a.click();
+      URL.revokeObjectURL(url);
+    });
+
+    // Clear data
+    document.getElementById('clearData').addEventListener('click', () => {
+      receivedData.innerHTML = '<div class="text-[#7b8ca6]">En attente de données...</div>';
+    });
+
+    // Periodic updates
+    setInterval(updateSatellitePosition, 5000);
+    setInterval(updateSignalStrength, 3000);
+
+    // --- Chart.js courbe résultats ---
+    const ctx = document.getElementById('resultsChart').getContext('2d');
+    const chartLabels = [];
+    const chartSuccess = [];
+    const chartFail = [];
+    const chartSuccessRate = [];
+    const resultsChart = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: chartLabels,
+        datasets: [
+          {
+            label: 'Succès',
+            data: chartSuccess,
+            borderColor: '#22c55e',
+            backgroundColor: 'rgba(34,197,94,0.2)',
+            yAxisID: 'y',
+            tension: 0.2,
+          },
+          {
+            label: 'Échecs',
+            data: chartFail,
+            borderColor: '#ef4444',
+            backgroundColor: 'rgba(239,68,68,0.2)',
+            yAxisID: 'y',
+            tension: 0.2,
+          },
+          {
+            label: 'Taux de succès (%)',
+            data: chartSuccessRate,
+            borderColor: '#3b82f6',
+            backgroundColor: 'rgba(59,130,246,0.1)',
+            yAxisID: 'y2',
+            borderDash: [5,5],
+            tension: 0.2,
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: { labels: { color: '#fff' } },
+          title: { display: false }
+        },
+        scales: {
+          x: { ticks: { color: '#7b8ca6' } },
+          y: {
+            type: 'linear',
+            position: 'left',
+            min: 0,
+            title: { display: true, text: 'Transmissions', color: '#fff' },
+            ticks: { color: '#7b8ca6' }
+          },
+          y2: {
+            type: 'linear',
+            position: 'right',
+            min: 0,
+            max: 100,
+            grid: { drawOnChartArea: false },
+            title: { display: true, text: 'Taux de succès (%)', color: '#fff' },
+            ticks: { color: '#3b82f6' }
+          }
+        }
+      }
+    });
+
+    function updateResultsChart() {
+      const now = new Date();
+      const label = now.toLocaleTimeString();
+      // Calculs globaux
+      const totalSuccess = Object.values(iotDevices).reduce((sum, d) => sum + (d.successCount || 0), 0);
+      const totalFail = Object.values(iotDevices).reduce((sum, d) => sum + (d.failCount || 0), 0);
+      const total = totalSuccess + totalFail;
+      const successRate = total > 0 ? Math.round(100 * totalSuccess / total) : 100;
+      // Limiter le nombre de points affichés
+      if (chartLabels.length > 30) {
+        chartLabels.shift(); chartSuccess.shift(); chartFail.shift(); chartSuccessRate.shift();
+      }
+      chartLabels.push(label);
+      chartSuccess.push(totalSuccess);
+      chartFail.push(totalFail);
+      chartSuccessRate.push(successRate);
+      resultsChart.update();
+    }
+
+    // Mise à jour régulière du graphique
+    setInterval(() => {
+      if (simulationRunning) updateResultsChart();
+    }, 1000);
+
+    // Initialize
+    initializeIoTDevices();
+    updateSatellitePosition();
+    updateSignalStrength();
+  </script>
+</body>
+</html> 

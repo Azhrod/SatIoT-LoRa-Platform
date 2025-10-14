@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="fr" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SatIoT-LoRa – Satellites Kinéis</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = { darkMode: 'class', theme: { extend: {} } };
+  </script>
+  <style>
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .fade-in {
+      animation: fadeIn 0.6s ease-out;
+    }
+    
+    .satellite-card {
+      transition: all 0.3s ease;
+    }
+    
+    .satellite-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+    }
+  </style>
+</head>
+<body class="bg-[#10131a] text-[#f3f6fa] font-sans antialiased min-h-screen">
+
+  <!-- Header -->
+  <header class="container mx-auto flex items-center justify-between py-6 px-4">
+    <h1 class="text-2xl font-semibold whitespace-nowrap cursor-pointer hover:text-[#3b82f6] transition-colors">
+      <a href="/">SatIoT-LoRa</a>
+    </h1>
+    <nav>
+      <ul class="flex space-x-8 text-[#7b8ca6]">
+        <li><a href="/realtime" class="hover:text-white">Temps Réel</a></li>
+        <li><a href="/integration" class="hover:text-white">Intégration LoRa</a></li>
+        <li><a href="/protocol" class="hover:text-white">Protocole</a></li>
+        <li><a href="/satellite" class="hover:text-white text-white">Satellites</a></li>
+        <li><a href="/documentation" class="hover:text-white">Documentation</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main class="container mx-auto px-4 py-8">
+    
+    <!-- Hero Section -->
+    <section class="text-center mb-16 fade-in">
+      <h1 class="text-5xl font-bold mb-6 bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">
+        Constellation Kinéis
+      </h1>
+      <p class="text-xl text-[#7b8ca6] max-w-3xl mx-auto">
+        Découvrez la constellation de satellites Kinéis qui révolutionne la connectivité IoT mondiale avec sa technologie LoRa.
+      </p>
+    </section>
+
+    <!-- Kinéis Company Info -->
+    <section class="mb-16 fade-in">
+      <div class="bg-[#181c23]/90 backdrop-blur-md rounded-2xl shadow-[0_8px_32px_0_rgba(31,38,135,0.37)] border border-[#23273a] p-8">
+        <h2 class="text-3xl font-bold mb-6 text-center">À propos de Kinéis</h2>
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <div>
+            <h3 class="text-xl font-semibold mb-4 text-blue-400">L'entreprise</h3>
+            <p class="text-[#7b8ca6] mb-4">
+              Kinéis est une entreprise française spécialisée dans la connectivité IoT par satellite. 
+              Fondée en 2018, elle développe et opère une constellation de nanosatellites dédiés à 
+              l'Internet des Objets.
+            </p>
+            <p class="text-[#7b8ca6] mb-4">
+              L'entreprise est issue du CNES (Centre National d'Études Spatiales) et bénéficie 
+              de plus de 25 ans d'expertise dans le domaine spatial.
+            </p>
+          </div>
+          <div>
+            <h3 class="text-xl font-semibold mb-4 text-green-400">Technologie LoRa</h3>
+            <p class="text-[#7b8ca6] mb-4">
+              Kinéis utilise la technologie LoRa (Long Range) pour offrir une connectivité 
+              globale à faible consommation d'énergie. Cette approche permet de connecter 
+              des objets IoT partout dans le monde.
+            </p>
+            <p class="text-[#7b8ca6]">
+              La constellation couvre 100% de la surface terrestre et permet des communications 
+              bidirectionnelles avec une latence de quelques minutes.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Constellation Overview -->
+    <section class="mb-16 fade-in">
+      <div class="bg-[#181c23]/90 backdrop-blur-md rounded-2xl shadow-[0_8px_32px_0_rgba(31,38,135,0.37)] border border-[#23273a] p-8">
+        <h2 class="text-3xl font-bold mb-6 text-center">Caractéristiques de la Constellation</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div class="text-center p-4 bg-[#1a2923]/60 rounded-xl border border-green-500/30">
+            <div class="text-3xl font-bold text-green-400 mb-2">25</div>
+            <div class="text-[#7b8ca6]">Satellites en orbite</div>
+          </div>
+          <div class="text-center p-4 bg-[#1a2923]/60 rounded-xl border border-blue-500/30">
+            <div class="text-3xl font-bold text-blue-400 mb-2">600 km</div>
+            <div class="text-[#7b8ca6]">Altitude d'orbite</div>
+          </div>
+          <div class="text-center p-4 bg-[#1a2923]/60 rounded-xl border border-cyan-500/30">
+            <div class="text-3xl font-bold text-cyan-400 mb-2">100%</div>
+            <div class="text-[#7b8ca6]">Couverture mondiale</div>
+          </div>
+          <div class="text-center p-4 bg-[#1a2923]/60 rounded-xl border border-purple-500/30">
+            <div class="text-3xl font-bold text-purple-400 mb-2">15 min</div>
+            <div class="text-[#7b8ca6]">Latence moyenne</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Satellite Details -->
+    <section class="mb-16 fade-in">
+      <h2 class="text-3xl font-bold mb-8 text-center">Satellites Kinéis Utilisés</h2>
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        
+        <!-- Satellite 1 -->
+        <div class="satellite-card bg-[#181c23]/90 backdrop-blur-md rounded-2xl shadow-[0_8px_32px_0_rgba(31,38,135,0.37)] border border-[#23273a] p-6">
+          <div class="flex items-center mb-4">
+            <div class="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center mr-4">
+              <span class="text-white font-bold">K1</span>
+            </div>
+            <h3 class="text-2xl font-bold">Kinéis-1</h3>
+          </div>
+          <div class="space-y-3 text-[#7b8ca6]">
+            <p><strong class="text-white">Type:</strong> Nanosatellite 6U</p>
+            <p><strong class="text-white">Masse:</strong> ~8 kg</p>
+            <p><strong class="text-white">Dimensions:</strong> 10 x 20 x 30 cm</p>
+            <p><strong class="text-white">Puissance:</strong> 20-30 W</p>
+            <p><strong class="text-white">Fréquence:</strong> 400-402 MHz (uplink), 400-402 MHz (downlink)</p>
+            <p><strong class="text-white">Technologie:</strong> LoRa, S-Band</p>
+            <p><strong class="text-white">Durée de vie:</strong> 5-7 ans</p>
+          </div>
+        </div>
+
+        <!-- Satellite 2 -->
+        <div class="satellite-card bg-[#181c23]/90 backdrop-blur-md rounded-2xl shadow-[0_8px_32px_0_rgba(31,38,135,0.37)] border border-[#23273a] p-6">
+          <div class="flex items-center mb-4">
+            <div class="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center mr-4">
+              <span class="text-white font-bold">K2</span>
+            </div>
+            <h3 class="text-2xl font-bold">Kinéis-2</h3>
+          </div>
+          <div class="space-y-3 text-[#7b8ca6]">
+            <p><strong class="text-white">Type:</strong> Nanosatellite 6U</p>
+            <p><strong class="text-white">Masse:</strong> ~8 kg</p>
+            <p><strong class="text-white">Dimensions:</strong> 10 x 20 x 30 cm</p>
+            <p><strong class="text-white">Puissance:</strong> 20-30 W</p>
+            <p><strong class="text-white">Fréquence:</strong> 400-402 MHz (uplink), 400-402 MHz (downlink)</p>
+            <p><strong class="text-white">Technologie:</strong> LoRa, S-Band</p>
+            <p><strong class="text-white">Durée de vie:</strong> 5-7 ans</p>
+          </div>
+        </div>
+
+        <!-- Satellite 3 -->
+        <div class="satellite-card bg-[#181c23]/90 backdrop-blur-md rounded-2xl shadow-[0_8px_32px_0_rgba(31,38,135,0.37)] border border-[#23273a] p-6">
+          <div class="flex items-center mb-4">
+            <div class="w-12 h-12 bg-cyan-500 rounded-full flex items-center justify-center mr-4">
+              <span class="text-white font-bold">K3</span>
+            </div>
+            <h3 class="text-2xl font-bold">Kinéis-3</h3>
+          </div>
+          <div class="space-y-3 text-[#7b8ca6]">
+            <p><strong class="text-white">Type:</strong> Nanosatellite 6U</p>
+            <p><strong class="text-white">Masse:</strong> ~8 kg</p>
+            <p><strong class="text-white">Dimensions:</strong> 10 x 20 x 30 cm</p>
+            <p><strong class="text-white">Puissance:</strong> 20-30 W</p>
+            <p><strong class="text-white">Fréquence:</strong> 400-402 MHz (uplink), 400-402 MHz (downlink)</p>
+            <p><strong class="text-white">Technologie:</strong> LoRa, S-Band</p>
+            <p><strong class="text-white">Durée de vie:</strong> 5-7 ans</p>
+          </div>
+        </div>
+
+        <!-- Satellite 4 -->
+        <div class="satellite-card bg-[#181c23]/90 backdrop-blur-md rounded-2xl shadow-[0_8px_32px_0_rgba(31,38,135,0.37)] border border-[#23273a] p-6">
+          <div class="flex items-center mb-4">
+            <div class="w-12 h-12 bg-purple-500 rounded-full flex items-center justify-center mr-4">
+              <span class="text-white font-bold">K4</span>
+            </div>
+            <h3 class="text-2xl font-bold">Kinéis-4</h3>
+          </div>
+          <div class="space-y-3 text-[#7b8ca6]">
+            <p><strong class="text-white">Type:</strong> Nanosatellite 6U</p>
+            <p><strong class="text-white">Masse:</strong> ~8 kg</p>
+            <p><strong class="text-white">Dimensions:</strong> 10 x 20 x 30 cm</p>
+            <p><strong class="text-white">Puissance:</strong> 20-30 W</p>
+            <p><strong class="text-white">Fréquence:</strong> 400-402 MHz (uplink), 400-402 MHz (downlink)</p>
+            <p><strong class="text-white">Technologie:</strong> LoRa, S-Band</p>
+            <p><strong class="text-white">Durée de vie:</strong> 5-7 ans</p>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- Technical Specifications -->
+    <section class="mb-16 fade-in">
+      <div class="bg-[#181c23]/90 backdrop-blur-md rounded-2xl shadow-[0_8px_32px_0_rgba(31,38,135,0.37)] border border-[#23273a] p-8">
+        <h2 class="text-3xl font-bold mb-6 text-center">Spécifications Techniques</h2>
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <div>
+            <h3 class="text-xl font-semibold mb-4 text-orange-400">Orbite</h3>
+            <ul class="space-y-2 text-[#7b8ca6]">
+              <li><strong class="text-white">Type:</strong> Orbite terrestre basse (LEO)</li>
+              <li><strong class="text-white">Altitude:</strong> 600 km</li>
+              <li><strong class="text-white">Inclinaison:</strong> 98° (orbite polaire)</li>
+              <li><strong class="text-white">Période:</strong> ~96 minutes</li>
+              <li><strong class="text-white">Vitesse:</strong> ~7.5 km/s</li>
+            </ul>
+          </div>
+          <div>
+            <h3 class="text-xl font-semibold mb-4 text-yellow-400">Communications</h3>
+            <ul class="space-y-2 text-[#7b8ca6]">
+              <li><strong class="text-white">Protocole:</strong> LoRaWAN</li>
+              <li><strong class="text-white">Bande de fréquence:</strong> 400-402 MHz</li>
+              <li><strong class="text-white">Débit:</strong> 0.3-37.5 kbps</li>
+              <li><strong class="text-white">Portée:</strong> Global</li>
+              <li><strong class="text-white">Latence:</strong> 15-30 minutes</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Applications -->
+    <section class="mb-16 fade-in">
+      <div class="bg-[#181c23]/90 backdrop-blur-md rounded-2xl shadow-[0_8px_32px_0_rgba(31,38,135,0.37)] border border-[#23273a] p-8">
+        <h2 class="text-3xl font-bold mb-6 text-center">Applications IoT</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div class="text-center p-6 bg-[#1a2923]/60 rounded-xl border border-green-500/30">
+            <div class="text-4xl mb-4">🌊</div>
+            <h3 class="text-lg font-semibold mb-2">Suivi maritime</h3>
+            <p class="text-[#7b8ca6] text-sm">Surveillance des navires et conteneurs en mer</p>
+          </div>
+          <div class="text-center p-6 bg-[#1a2923]/60 rounded-xl border border-blue-500/30">
+            <div class="text-4xl mb-4">🚛</div>
+            <h3 class="text-lg font-semibold mb-2">Logistique</h3>
+            <p class="text-[#7b8ca6] text-sm">Suivi des marchandises et véhicules</p>
+          </div>
+          <div class="text-center p-6 bg-[#1a2923]/60 rounded-xl border border-cyan-500/30">
+            <div class="text-4xl mb-4">🌱</div>
+            <h3 class="text-lg font-semibold mb-2">Agriculture</h3>
+            <p class="text-[#7b8ca6] text-sm">Monitoring des cultures et élevage</p>
+          </div>
+          <div class="text-center p-6 bg-[#1a2923]/60 rounded-xl border border-purple-500/30">
+            <div class="text-4xl mb-4">⚡</div>
+            <h3 class="text-lg font-semibold mb-2">Énergie</h3>
+            <p class="text-[#7b8ca6] text-sm">Surveillance des infrastructures</p>
+          </div>
+          <div class="text-center p-6 bg-[#1a2923]/60 rounded-xl border border-orange-500/30">
+            <div class="text-4xl mb-4">🏔️</div>
+            <h3 class="text-lg font-semibold mb-2">Environnement</h3>
+            <p class="text-[#7b8ca6] text-sm">Monitoring écologique et météo</p>
+          </div>
+          <div class="text-center p-6 bg-[#1a2923]/60 rounded-xl border border-yellow-500/30">
+            <div class="text-4xl mb-4">🏥</div>
+            <h3 class="text-lg font-semibold mb-2">Santé</h3>
+            <p class="text-[#7b8ca6] text-sm">Télémédecine et monitoring</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="container mx-auto text-center py-8 text-[#7b8ca6] border-t border-[#23273a] mt-16">
+    <p>&copy; 2025 SatIoT-LoRa. Tous droits réservés.</p>
+    <p class="mt-2 text-sm">Constellation Kinéis - Connectivité IoT globale</p>
+  </footer>
+
+</body>
+</html> 
